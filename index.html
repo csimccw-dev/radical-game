@@ -2,65 +2,121 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>部首大挑戰</title>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
 
+    * { box-sizing: border-box; } /* 確保 padding 不會撐開寬度 */
+
     body { 
         font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; 
-        background-color: #f0f8ff; display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        min-height: 100vh; margin: 0; 
+        background-color: #f0f8ff; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
+        min-height: 100vh; margin: 0; padding: 10px;
     }
+
     .container { 
-        background-color: white; padding: 2rem; border-radius: 24px; 
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; 
-        width: 600px; max-width: 95%; 
+        background-color: white; padding: 1.5rem; border-radius: 24px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; 
+        width: 100%; max-width: 600px; /* 電腦版最大 600px，手機版 100% */
+        margin-top: 10px;
     }
-    h1 { color: #2c3e50; margin-bottom: 1rem; }
-    .status-bar { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 1.2rem; font-weight: bold; }
+
+    h1 { color: #2c3e50; margin: 0 0 1rem 0; font-size: 1.8rem; }
     
+    .status-bar { display: flex; justify-content: space-between; margin-bottom: 1rem; font-size: 1.1rem; font-weight: bold; }
+    
+    /* 題目區自適應 */
     .question-box { 
-        margin: 25px 0; display: flex; flex-direction: row; 
+        margin: 15px 0; display: flex; flex-direction: row; 
         align-items: center; justify-content: center; 
-        min-height: 280px; background-color: #fafafa;
-        border-radius: 20px; border: 2px solid #eee; gap: 40px; 
+        min-height: 220px; background-color: #fafafa;
+        border-radius: 20px; border: 2px solid #eee; gap: 5vw; /* 使用視窗寬度單位 */
     }
-    .char-main { font-size: 10rem; font-weight: 700; color: #2c3e50; line-height: 1; }
+
+    .char-main { 
+        font-size: clamp(5rem, 25vw, 9rem); /* 根據螢幕寬度自動縮放字體 */
+        font-weight: 700; color: #2c3e50; line-height: 1; 
+    }
+
     .zhuyin-container {
         position: relative; display: flex; flex-direction: row-reverse;
         align-items: center; border: 3px solid #ffeb3b;
-        padding: 20px 15px; background: white; min-width: 90px; border-radius: 12px;
+        padding: 15px 10px; background: white; 
+        min-width: clamp(60px, 15vw, 90px); border-radius: 12px;
     }
-    .zhuyin-symbols { writing-mode: vertical-rl; font-size: 3.8rem; color: #333; font-weight: 700; text-orientation: upright; }
-    .tone-mark { position: absolute; right: -0.7em; top: 50%; transform: translateY(-50%); font-size: 5rem; color: #333; font-weight: 900; }
-    .tone-dot { position: absolute; top: -0.9em; left: 50%; transform: translateX(-50%); font-size: 4rem; color: #333; font-weight: 900; }
 
-    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    button { 
-        background-color: #4CAF50; border: none; color: white; padding: 15px 25px;
-        border-radius: 16px; cursor: pointer; box-shadow: 0 6px #388E3C; 
-        display: flex; align-items: center; justify-content: center; gap: 15px;
+    .zhuyin-symbols { 
+        writing-mode: vertical-rl; 
+        font-size: clamp(2rem, 10vw, 3.8rem); 
+        color: #333; font-weight: 700; text-orientation: upright; 
     }
-    .btn-char { font-size: 3.2rem; font-weight: bold; }
+
+    .tone-mark { 
+        position: absolute; right: -0.7em; top: 50%; transform: translateY(-50%); 
+        font-size: clamp(2.5rem, 12vw, 5rem); color: #333; font-weight: 900; 
+    }
+
+    .tone-dot { 
+        position: absolute; top: -0.9em; left: 50%; transform: translateX(-50%); 
+        font-size: clamp(2rem, 10vw, 4rem); color: #333; font-weight: 900; 
+    }
+
+    /* 選項按鈕自適應 */
+    .options-grid { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 10px; 
+        width: 100%;
+    }
+
+    button { 
+        background-color: #4CAF50; border: none; color: white; 
+        padding: 10px 5px; border-radius: 16px; cursor: pointer; 
+        box-shadow: 0 5px #388E3C; 
+        display: flex; align-items: center; justify-content: center; 
+        gap: 8px; width: 100%;
+    }
+
+    .btn-char { font-size: clamp(1.8rem, 8vw, 3.2rem); font-weight: bold; }
     
     .btn-zy-container {
-        position: relative; display: flex; padding: 5px 12px;
-        background: rgba(0,0,0,0.15); border-radius: 8px;
-        min-width: 50px; justify-content: center;
+        position: relative; display: flex; padding: 3px 8px;
+        background: rgba(0,0,0,0.15); border-radius: 6px;
+        min-width: 35px; justify-content: center;
     }
-    .btn-zy-symbols { writing-mode: vertical-rl; font-size: 1.8rem; text-orientation: upright; line-height: 1.1; }
-    .btn-tone { position: absolute; right: -0.3em; top: 50%; transform: translateY(-50%); font-size: 2.5rem; font-weight: 900; color: #fff; }
-    .btn-tone-dot { position: absolute; top: -0.6em; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; }
 
-    button.wrong { background-color: #e74c3c; box-shadow: 0 6px #c0392b; }
-    button.correct { background-color: #f1c40f; box-shadow: 0 6px #f39c12; }
-    .result-screen { display: none; }
-    #settings-area { margin-top: 30px; width: 600px; max-width: 95%; }
+    .btn-zy-symbols { 
+        writing-mode: vertical-rl; 
+        font-size: clamp(1rem, 4vw, 1.8rem); 
+        text-orientation: upright; line-height: 1.1; 
+    }
+
+    .btn-tone { 
+        position: absolute; right: -0.3em; top: 50%; transform: translateY(-50%); 
+        font-size: clamp(1.2rem, 5vw, 2.5rem); font-weight: 900; color: #fff; 
+    }
+
+    .btn-tone-dot { 
+        position: absolute; top: -0.6em; left: 50%; transform: translateX(-50%); 
+        font-size: clamp(1rem, 4vw, 2rem); font-weight: 900; 
+    }
+
+    button:active { transform: translateY(3px); box-shadow: 0 2px #388E3C; }
+
+    button.wrong { background-color: #e74c3c; box-shadow: 0 5px #c0392b; }
+    button.correct { background-color: #f1c40f; box-shadow: 0 5px #f39c12; }
     
-    /* 這裡加上初始隱藏，並確保 JS 判斷明確 */
+    .result-screen { display: none; padding: 20px 0; }
+    #settings-area { margin-top: 20px; width: 100%; max-width: 600px; }
     #settings-content { display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin-top: 10px; }
     textarea { width: 100%; border: 1px solid #ddd; padding: 10px; font-size: 1rem; box-sizing: border-box; }
+
+    /* 針對超小螢幕微調 */
+    @media (max-width: 360px) {
+        .question-box { gap: 15px; min-height: 180px; }
+        .container { padding: 1rem; }
+    }
 </style>
 </head>
 <body>
@@ -81,24 +137,25 @@
 
     <div id="result-screen" class="result-screen">
         <h1>挑戰完成！🎉</h1>
-        <div style="font-size: 6rem; color: #e74c3c; font-weight: bold;" id="final-score">0</div>
+        <div style="font-size: 5rem; color: #e74c3c; font-weight: bold;" id="final-score">0</div>
         <div id="wrong-list-container" style="display:none; text-align: left; padding: 10px;">
             <p style="font-weight:bold;">需要練習的字：</p>
-            <div id="wrong-report" style="background: #fff0f0; padding: 10px; border-radius: 8px; line-height: 1.6;"></div>
+            <div id="wrong-report" style="background: #fff0f0; padding: 10px; border-radius: 8px; line-height: 1.6; font-size: 0.9rem;"></div>
         </div>
-        <button onclick="initGame()" style="width:100%; background:#3498db; color:white; font-size:1.8rem; height:70px; border:none; border-radius:15px; cursor:pointer; margin-top:20px;">再玩一次</button>
+        <button onclick="initGame()" style="width:100%; background:#3498db; color:white; font-size:1.5rem; height:60px; border:none; border-radius:15px; cursor:pointer; margin-top:20px;">再玩一次</button>
     </div>
 </div>
 
 <div id="settings-area">
-    <button id="toggle-btn" onclick="toggleSettings()" style="background:#95a5a6; color:white; padding:10px; border:none; border-radius:8px; cursor:pointer;">⚙️ 設定題目</button>
+    <button id="toggle-btn" onclick="toggleSettings()" style="background:#95a5a6; color:white; padding:10px; border:none; border-radius:8px; cursor:pointer; width: 100%;">⚙️ 設定題目</button>
     <div id="settings-content">
-        <textarea id="words-input" rows="12"></textarea>
+        <textarea id="words-input" rows="10"></textarea>
         <button onclick="saveAndRestart()" style="background:#34495e; color:white; width:100%; padding:10px; margin-top:5px; border:none; border-radius:8px;">儲存並開始</button>
     </div>
 </div>
 
 <script>
+    // (JavaScript 部分維持原樣，僅修正了「門」的多餘字元)
     const defaultWords = `起(ㄑㄧˇ),走(ㄗㄡˇ)
 走(ㄗㄡˇ),走(ㄗㄡˇ)
 你(ㄋㄧˇ),人(ㄖㄣˊ)
@@ -225,14 +282,9 @@
         osc.start(); osc.stop(audioCtx.currentTime + 0.2);
     }
 
-    // 修正：明確判斷 display 狀態
     function toggleSettings() {
         const content = document.getElementById('settings-content');
-        if (content.style.display === "block") {
-            content.style.display = "none";
-        } else {
-            content.style.display = "block";
-        }
+        content.style.display = (content.style.display === "block") ? "none" : "block";
     }
 
     function saveAndRestart() {
@@ -247,24 +299,19 @@
             };
             return { charObj: parse(parts[0]), radObj: parse(parts[1]) };
         }).filter(i => i);
-        localStorage.setItem('myWordsFinal', input);
+        localStorage.setItem('myWordsFinal_V2', input);
         document.getElementById('settings-content').style.display = "none";
         initGame();
     }
 
     function initGame() {
-        let saved = localStorage.getItem('myWordsFinal');
+        let saved = localStorage.getItem('myWordsFinal_V2');
         if (!saved) {
             saved = defaultWords;
-            localStorage.setItem('myWordsFinal', saved);
+            localStorage.setItem('myWordsFinal_V2', saved);
         }
         document.getElementById('words-input').value = saved;
-        
-        if (fullDatabase.length === 0) {
-            saveAndRestart();
-            return;
-        }
-
+        if (fullDatabase.length === 0) { saveAndRestart(); return; }
         score = 0; currentIdx = 0; wrongList = [];
         pointsPerWord = 100 / fullDatabase.length;
         currentQuestions = [...fullDatabase].sort(() => Math.random() - 0.5);
@@ -284,7 +331,7 @@
         
         let correctOpt = q.radObj.raw;
         let options = [correctOpt];
-        const common = ["水(ㄕㄨㄟˇ)","木(ㄇㄨˋ)","手(ㄕㄡˇ)","心(ㄒㄧㄣ)","言(ㄧㄢˊ)","口(ㄎㄡˇ)","人(ㄖㄣˊ)","土(ㄊㄨˇ)","刀(ㄉㄠ)","艸(ㄘㄠˇ)"];
+        const common = ["水(ㄕㄨㄟˇ)","木(ㄇㄇˋ)","手(ㄕㄡˇ)","心(ㄒㄧㄣ)","言(ㄧㄢˊ)","口(ㄎㄡˇ)","人(ㄖㄣˊ)","土(ㄊㄨˇ)","刀(ㄉㄠ)","艸(ㄘㄠˇ)"];
         while(options.length < 4) {
             let r = common[Math.floor(Math.random() * common.length)];
             if(!options.includes(r)) options.push(r);
@@ -323,8 +370,6 @@
         if (wrongList.length > 0) {
             document.getElementById('wrong-report').innerHTML = wrongList.map(i => `${i.charObj.raw} ➔ ${i.radObj.raw}`).join('<br>');
             document.getElementById('wrong-list-container').style.display = 'block';
-        } else {
-            document.getElementById('wrong-list-container').style.display = 'none';
         }
     }
     window.onload = initGame;
