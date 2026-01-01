@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部首大挑戰</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
+
+    body { 
+        font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; 
+        background-color: #f0f8ff; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+        min-height: 100vh; margin: 0; 
+    }
+    .container { 
+        background-color: white; padding: 2rem; border-radius: 24px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; 
+        width: 600px; max-width: 95%; 
+    }
+    h1 { color: #2c3e50; margin-bottom: 1rem; }
+    .status-bar { display: flex; justify-content: space-between; margin-bottom: 1.5rem; font-size: 1.2rem; font-weight: bold; }
+    
+    .question-box { 
+        margin: 25px 0; display: flex; flex-direction: row; 
+        align-items: center; justify-content: center; 
+        min-height: 280px; background-color: #fafafa;
+        border-radius: 20px; border: 2px solid #eee; gap: 40px; 
+    }
+    .char-main { font-size: 10rem; font-weight: 700; color: #2c3e50; line-height: 1; }
+    .zhuyin-container {
+        position: relative; display: flex; flex-direction: row-reverse;
+        align-items: center; border: 3px solid #ffeb3b;
+        padding: 20px 15px; background: white; min-width: 90px; border-radius: 12px;
+    }
+    .zhuyin-symbols { writing-mode: vertical-rl; font-size: 3.8rem; color: #333; font-weight: 700; text-orientation: upright; }
+    .tone-mark { position: absolute; right: -0.7em; top: 50%; transform: translateY(-50%); font-size: 5rem; color: #333; font-weight: 900; }
+    .tone-dot { position: absolute; top: -0.9em; left: 50%; transform: translateX(-50%); font-size: 4rem; color: #333; font-weight: 900; }
+
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    button { 
+        background-color: #4CAF50; border: none; color: white; padding: 15px 25px;
+        border-radius: 16px; cursor: pointer; box-shadow: 0 6px #388E3C; 
+        display: flex; align-items: center; justify-content: center; gap: 15px;
+    }
+    .btn-char { font-size: 3.2rem; font-weight: bold; }
+    
+    .btn-zy-container {
+        position: relative; display: flex; padding: 5px 12px;
+        background: rgba(0,0,0,0.15); border-radius: 8px;
+        min-width: 50px; justify-content: center;
+    }
+    .btn-zy-symbols { writing-mode: vertical-rl; font-size: 1.8rem; text-orientation: upright; line-height: 1.1; }
+    .btn-tone { position: absolute; right: -0.3em; top: 50%; transform: translateY(-50%); font-size: 2.5rem; font-weight: 900; color: #fff; }
+    .btn-tone-dot { position: absolute; top: -0.6em; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; }
+
+    button.wrong { background-color: #e74c3c; box-shadow: 0 6px #c0392b; }
+    button.correct { background-color: #f1c40f; box-shadow: 0 6px #f39c12; }
+    .result-screen { display: none; }
+    #settings-area { margin-top: 30px; width: 600px; max-width: 95%; }
+    
+    /* 這裡加上初始隱藏，並確保 JS 判斷明確 */
+    #settings-content { display: none; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ccc; margin-top: 10px; }
+    textarea { width: 100%; border: 1px solid #ddd; padding: 10px; font-size: 1rem; box-sizing: border-box; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div id="game-screen">
+        <h1>部首大挑戰 🎯</h1>
+        <div class="status-bar">
+            <span class="score" id="score-display">分數: 0</span>
+            <span class="progress" id="progress-display">題目: 1 / --</span>
+        </div>
+        <div class="question-box">
+            <div class="char-main" id="display-char">?</div>
+            <div id="zy-box-main" class="zhuyin-container"></div>
+        </div>
+        <div id="options" class="options-grid"></div>
+    </div>
+
+    <div id="result-screen" class="result-screen">
+        <h1>挑戰完成！🎉</h1>
+        <div style="font-size: 6rem; color: #e74c3c; font-weight: bold;" id="final-score">0</div>
+        <div id="wrong-list-container" style="display:none; text-align: left; padding: 10px;">
+            <p style="font-weight:bold;">需要練習的字：</p>
+            <div id="wrong-report" style="background: #fff0f0; padding: 10px; border-radius: 8px; line-height: 1.6;"></div>
+        </div>
+        <button onclick="initGame()" style="width:100%; background:#3498db; color:white; font-size:1.8rem; height:70px; border:none; border-radius:15px; cursor:pointer; margin-top:20px;">再玩一次</button>
+    </div>
+</div>
+
+<div id="settings-area">
+    <button id="toggle-btn" onclick="toggleSettings()" style="background:#95a5a6; color:white; padding:10px; border:none; border-radius:8px; cursor:pointer;">⚙️ 設定題目</button>
+    <div id="settings-content">
+        <textarea id="words-input" rows="12"></textarea>
+        <button onclick="saveAndRestart()" style="background:#34495e; color:white; width:100%; padding:10px; margin-top:5px; border:none; border-radius:8px;">儲存並開始</button>
+    </div>
+</div>
+
+<script>
+    const defaultWords = `起(ㄑㄧˇ),走(ㄗㄡˇ)
+走(ㄗㄡˇ),走(ㄗㄡˇ)
+你(ㄋㄧˇ),人(ㄖㄣˊ)
+在(ㄗㄞˋ),土(ㄊㄨˇ)
+左(ㄗㄨㄛˇ),工(ㄍㄨㄥ)
+我(ㄨㄛˇ),戈(ㄍㄜ)
+右(ㄧㄡˋ),口(ㄎㄡˇ)
+和(ㄏㄢˋ),口(ㄎㄡˇ)
+向(ㄒㄧㄤˋ),口(ㄎㄡˇ)
+前(ㄑㄧㄢˊ),刀(ㄉㄠ)
+玩(ㄨㄢˊ),玉(ㄩˋ)
+來(ㄌㄞˊ),人(ㄖㄣˊ)
+們(ㄇㄣ˙),人(ㄖㄣˊ)
+吹(ㄔㄨㄟ),口(ㄎㄡˇ)
+風(ㄈㄥ),風(ㄈㄥ)
+大(ㄉㄚˋ),大(ㄉㄚˋ)
+跑(ㄆㄠˇ),足(ㄗㄨˊ)
+的(ㄉㄜ˙),白(ㄅㄞˊ)
+停(ㄊㄧㄥˊ),人(ㄖㄣˊ)
+不(ㄅㄨˋ),一(ㄧ)
+火(ㄏㄨㄛˇ),火(ㄏㄨㄛˇ)
+車(ㄔㄜ),車(ㄔㄜ)
+過(ㄍㄨㄛˋ),辵(ㄔㄨㄛˋ)
+山(ㄕㄢ),山(ㄕㄢ)
+洞(ㄉㄨㄥˋ),水(ㄕㄨㄟˇ)
+個(ㄍㄜˋ),人(ㄖㄣˊ)
+又(ㄧㄡˋ),又(ㄧㄡˋ)
+做(ㄗㄨㄛˋ),人(ㄖㄣˊ)
+出(ㄔㄨ),凵(ㄎㄢ)
+小(ㄒㄧㄠˇ),小(ㄒㄧㄠˇ)
+堆(ㄉㄨㄟ),土(ㄊㄨˇ)
+開(ㄎㄞ),門(ㄇㄣˊ)
+心(ㄒㄧㄣ),心(ㄒㄧㄣ)
+請(ㄑㄧㄥˇ),言(ㄧㄢˊ)
+問(ㄨㄣˋ),口(ㄎㄡˇ)
+草(ㄘㄠˇ),艸(ㄘㄠˇ)
+天(ㄊㄧㄢ),大(ㄉㄚˋ)
+有(ㄧㄡˇ),月(ㄩㄝˋ)
+多(ㄉㄨㄛ),夕(ㄒㄧˋ)
+高(ㄍㄠ),高(ㄍㄠ)
+星(ㄒㄧㄥ),日(ㄖˋ)
+少(ㄕㄠˇ),小(ㄒㄧㄠˇ)
+太(ㄊㄞˋ),大(ㄉㄚˋ)
+陽(ㄧㄤˊ),阜(ㄈㄨˋ)
+了(ㄌㄜ˙),亅(ㄐㄩㄝˊ)
+水(ㄕㄨㄟˇ),水(ㄕㄨㄟˇ)
+珠(ㄓㄨ),玉(ㄩˋ)
+哪(ㄋㄚˇ),口(ㄎㄡˇ)
+去(ㄑㄩˋ),厶(ㄙ)
+彩(ㄘㄞˇ),彡(ㄕㄢ)
+滑(ㄏㄨㄚˊ),水(ㄕㄨㄟˇ)
+梯(ㄊㄧ),木(ㄇㄨˋ)
+上(ㄕㄤˋ),一(ㄧ)
+好(ㄏㄠˇ),女(ㄋㄩˇ)
+想(ㄒㄧㄤˇ),心(ㄒㄧㄣ)
+爬(ㄆㄚˊ),爪(ㄓㄠˇ)
+看(ㄎㄢˋ),目(ㄇㄨˋ)
+沒(ㄇㄟˊ),水(ㄕㄨㄟˇ)
+棉(ㄇㄧㄢˊ),木(ㄇㄨˋ)
+花(ㄏㄨㄚ),艸(ㄘㄠˇ)
+糖(ㄊㄤˊ),米(ㄇㄧˇ)
+下(ㄒㄧㄚˋ),一(ㄧ)
+泡(ㄆㄠˋ),水(ㄕㄨㄟˇ)
+池(ㄔˊ),水(ㄕㄨㄟˇ)
+秋(ㄑㄧㄡ),禾(ㄏㄜˊ)
+千(ㄑㄧㄢ),十(ㄕˊ)
+子(ㄗˇ),子(ㄗˇ)
+空(ㄎㄨㄥ),穴(ㄒㄩㄝˋ)
+說(ㄕㄨㄛ),言(ㄧㄢˊ)
+早(ㄗㄠˇ),日(ㄖˋ)
+低(ㄉㄧ),人(ㄖㄣˊ)
+田(ㄊㄧㄢˊ),田(ㄊㄧㄢˊ)
+找(ㄓㄠˇ),手(ㄕㄡˇ)
+是(ㄕˋ),日(ㄖˋ)
+誰(ㄕㄟˊ),言(ㄧㄢˊ)
+陪(ㄆㄟˊ),阜(ㄈㄨˋ)
+他(ㄔㄚ),人(ㄖㄣˊ)
+回(ㄏㄨㄟˊ),口(ㄎㄡˇ)
+音(ㄧㄣ),音(ㄧㄣ)
+到(ㄉㄠˋ),刀(ㄉㄠ)
+谷(ㄍㄨˇ),谷(ㄍㄨˇ)
+叫(ㄐㄧㄠˋ),口(ㄎㄡˇ)
+人(ㄖㄣˊ),人(ㄖㄣˊ)
+嗎(ㄇㄚ˙),口(ㄎㄡˇ)
+也(ㄧㄝˇ),乙(ㄧˇ)
+笑(ㄒㄧㄠˋ),竹(ㄓㄨˊ)
+哈(ㄏㄚ),口(ㄎㄡˇ)`;
+
+    let fullDatabase = [];
+    let currentQuestions = [];
+    let score = 0, currentIdx = 0, pointsPerWord = 0;
+    let wrongList = [], hasMistake = false;
+
+    function renderZhuyin(text, containerId) {
+        const container = document.getElementById(containerId);
+        const tones = ["ˊ", "ˇ", "ˋ", "˙"];
+        let mainSymbols = "", toneMark = "";
+        for (let char of text) {
+            if (tones.includes(char)) toneMark = char;
+            else mainSymbols += char;
+        }
+        const toneClass = toneMark === "˙" ? "tone-dot" : "tone-mark";
+        container.innerHTML = `<div class="zhuyin-symbols">${mainSymbols}</div>${toneMark ? `<div class="${toneClass}">${toneMark}</div>` : ""}`;
+    }
+
+    function getZhuyinHTML(text) {
+        const tones = ["ˊ", "ˇ", "ˋ", "˙"];
+        let main = "", tone = "";
+        for (let char of text) {
+            if (tones.includes(char)) tone = char;
+            else main += char;
+        }
+        const toneClass = tone === "˙" ? "btn-tone-dot" : "btn-tone";
+        return `<div class="btn-zy-container"><div class="btn-zy-symbols">${main}</div>${tone ? `<div class="${toneClass}">${tone}</div>` : ""}</div>`;
+    }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(isCorrect) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.setValueAtTime(isCorrect ? 523 : 220, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    // 修正：明確判斷 display 狀態
+    function toggleSettings() {
+        const content = document.getElementById('settings-content');
+        if (content.style.display === "block") {
+            content.style.display = "none";
+        } else {
+            content.style.display = "block";
+        }
+    }
+
+    function saveAndRestart() {
+        const input = document.getElementById('words-input').value.trim();
+        if (!input) return;
+        fullDatabase = input.split('\n').map(line => {
+            const parts = line.split(',');
+            if (parts.length < 2) return null;
+            const parse = (str) => {
+                const match = str.match(/(.+)\((.+)\)/);
+                return match ? { raw: str, main: match[1].trim(), ying: match[2].trim() } : { raw: str, main: str.trim(), ying: "" };
+            };
+            return { charObj: parse(parts[0]), radObj: parse(parts[1]) };
+        }).filter(i => i);
+        localStorage.setItem('myWordsFinal', input);
+        document.getElementById('settings-content').style.display = "none";
+        initGame();
+    }
+
+    function initGame() {
+        let saved = localStorage.getItem('myWordsFinal');
+        if (!saved) {
+            saved = defaultWords;
+            localStorage.setItem('myWordsFinal', saved);
+        }
+        document.getElementById('words-input').value = saved;
+        
+        if (fullDatabase.length === 0) {
+            saveAndRestart();
+            return;
+        }
+
+        score = 0; currentIdx = 0; wrongList = [];
+        pointsPerWord = 100 / fullDatabase.length;
+        currentQuestions = [...fullDatabase].sort(() => Math.random() - 0.5);
+        document.getElementById('game-screen').style.display = 'block';
+        document.getElementById('result-screen').style.display = 'none';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentIdx >= currentQuestions.length) return showResult();
+        hasMistake = false;
+        const q = currentQuestions[currentIdx];
+        document.getElementById('display-char').innerText = q.charObj.main;
+        renderZhuyin(q.charObj.ying, "zy-box-main");
+        document.getElementById('score-display').innerText = `分數: ${Math.round(score)}`;
+        document.getElementById('progress-display').innerText = `題目: ${currentIdx + 1} / ${currentQuestions.length}`;
+        
+        let correctOpt = q.radObj.raw;
+        let options = [correctOpt];
+        const common = ["水(ㄕㄨㄟˇ)","木(ㄇㄨˋ)","手(ㄕㄡˇ)","心(ㄒㄧㄣ)","言(ㄧㄢˊ)","口(ㄎㄡˇ)","人(ㄖㄣˊ)","土(ㄊㄨˇ)","刀(ㄉㄠ)","艸(ㄘㄠˇ)"];
+        while(options.length < 4) {
+            let r = common[Math.floor(Math.random() * common.length)];
+            if(!options.includes(r)) options.push(r);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        const grid = document.getElementById('options');
+        grid.innerHTML = "";
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            const m = opt.match(/(.+)\((.+)\)/);
+            btn.innerHTML = m ? `<span class="btn-char">${m[1]}</span>${getZhuyinHTML(m[2])}` : `<span class="btn-char">${opt}</span>`;
+            btn.onclick = () => {
+                if (opt === correctOpt) {
+                    playSound(true);
+                    btn.classList.add('correct');
+                    if (!hasMistake) score += pointsPerWord;
+                    currentIdx++;
+                    setTimeout(showQuestion, 800);
+                } else {
+                    playSound(false);
+                    btn.classList.add('wrong');
+                    if (!hasMistake) wrongList.push(q);
+                    hasMistake = true;
+                    setTimeout(() => btn.classList.remove('wrong'), 500);
+                }
+            };
+            grid.appendChild(btn);
+        });
+    }
+
+    function showResult() {
+        document.getElementById('game-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = (wrongList.length === 0) ? 100 : Math.min(99, Math.round(score));
+        if (wrongList.length > 0) {
+            document.getElementById('wrong-report').innerHTML = wrongList.map(i => `${i.charObj.raw} ➔ ${i.radObj.raw}`).join('<br>');
+            document.getElementById('wrong-list-container').style.display = 'block';
+        } else {
+            document.getElementById('wrong-list-container').style.display = 'none';
+        }
+    }
+    window.onload = initGame;
+</script>
+</body>
+</html>
